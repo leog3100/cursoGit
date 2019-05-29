@@ -10,3 +10,415 @@
     
 </body>
 </html>
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<locale.h>
+#include<conio.h>
+
+typedef struct Noh{
+char nome[15];
+struct No *prox;
+}no;
+
+typedef struct Lista
+{
+    no *inicio;
+    no *fim;
+    no *atual;
+    no *anterior;
+}lista_jog;
+
+typedef struct Rodada
+{
+    no *atual;
+    no *ant;
+}rodada;
+
+void inicia_lista(lista_jog *lista)
+{
+    lista->inicio = NULL;
+    lista->fim = NULL;
+    lista->atual = NULL;
+    lista->anterior = NULL;
+}
+
+/*função para inserir o nó jogador na lista*/
+int inserir_jogador(lista_jog *lista, int i)
+{
+    i++;
+    no *novo;
+    novo = (no *)malloc(sizeof(no));
+    char nome[15];
+
+
+        printf("\n Informe o nome do %dº Player:  ", i);
+        scanf("%s", &novo->nome);
+
+        novo->prox = NULL;
+
+        if (lista->inicio == NULL)
+        {
+            lista->inicio = novo;
+            lista->fim = novo;
+        }
+        else
+        {
+            lista->fim->prox = novo; //encadeamento da lista
+            lista->fim = novo;
+            novo->prox = lista->inicio;
+        }
+}
+
+/*função que imprime a lista*/
+void imprimir_jogadores(lista_jog *lista)
+{
+    no *aux, *ant;
+    aux = lista->inicio;
+    ant = NULL;
+
+    if (aux == NULL)
+    {
+        printf("\n Lista Vazia!");
+    }
+    else
+    {
+        do{
+             printf("%s ", aux->nome);
+             aux = aux->prox;
+
+          }while (aux != lista->inicio);
+
+    }
+}
+
+void remover_jogador(lista_jog *lista)
+{
+    char nome_remove[15];
+    no *ant, *atual;
+
+    printf("\nInforme o Player a ser removido: ");
+    scanf("%s", &nome_remove);
+
+    if(lista->inicio == NULL)
+    {
+        printf("\nLista Vazia!");
+    }
+    else
+    {
+        ant = NULL;
+        atual = lista->inicio;
+
+        while (atual != ant)
+        {
+            if(strcmp(atual->nome, nome_remove) == 0)
+            {
+                if (atual == lista->inicio)
+                {
+                    lista->inicio = lista->inicio->prox;
+                    free(atual);
+                    break;
+                }
+                    else
+                    {
+                        if(atual == lista->fim)
+                        {
+                            lista->fim = ant;
+                        }
+
+                        //refazendo encadeamento
+                        ant->prox = atual->prox;
+                        free(atual);
+                        break;
+                    }
+            }
+            else
+            {
+                ant = atual;
+                atual = atual->prox;
+            }
+        }
+    }
+}
+
+int tirar_carta()
+{
+     int i, num;
+
+     /* inicializar o gerador de números aleatórios */
+     srand(time(NULL));
+
+     for (i=0; i<8; i++)
+     {
+        /* para gerar números aleatórios de 0 a 7 e verificar se é primo. Retorna o primeiro num primo encontrado */
+        num = rand() % 8;
+        if((num == 2) || (num % 2 == 1 && num != 1))
+        {
+            // printf("O número tirado foi: %d", num);
+            return num;
+            break;
+        }
+     }
+}
+
+void jogar(lista_jog *lista)
+{
+    int num_carta = tirar_carta();
+    printf(" ");
+    printf("\n\n\t\tA carta tirada foi: %d", num_carta);
+
+    switch(num_carta)
+    {
+    case 2: /*Pula o próximo jogador e passa a vez para o seguinte.*/
+        {
+            no *atual, *ant, *prox;
+
+            atual = lista->atual;
+            ant = lista->anterior;
+            prox = lista->atual->prox;
+
+            lista->anterior = atual;
+            lista->atual = prox->prox;
+
+
+            /*printf("Carta de numero 2...\n");*/
+            printf("\nDescrição da carta: ''Pula o próximo jogador e passa a vez para o seguinte.''\n");
+            printf("\n\n");
+            printf("%s não jogará essa rodada\n", prox->nome);
+            printf("Agora é a vez do(a) Player >>>>> %s !\n\n", lista->atual->nome);
+
+
+                printf("\nlista inicio é: %s", lista->inicio->nome);
+                printf("\nlista fim é: %s", lista->fim->nome);
+                printf("\nLista Atual é: %s", lista->atual->nome);
+                printf("\nlista anterior é: %s\n", lista->anterior->nome);
+
+
+        }break;
+
+    case 3:/*Elimina o jogador atual.*/
+        {
+             no *atual, *ant, *prox;
+
+            atual = lista->atual;
+            ant = lista->anterior;
+            prox = lista->atual->prox;
+
+                        printf("\nDescrição da carta: ''Elimina o jogador atual''\n");
+                        printf("\n\n");
+
+            if(lista->atual == lista->inicio)
+            {
+                printf("O Player %s foi eliminado do jogo! \n", atual->nome);
+                lista->atual = lista->atual->prox;
+                lista->inicio = lista->atual;
+                free(atual);
+            }
+            else
+            {
+                printf("O Player eliminado é >>>> %s\n", atual->nome);
+                ant->prox = atual->prox;
+                lista->atual = atual->prox;
+                free(atual);
+            }
+            printf("\n");
+            printf("\t\tAgora é a vez do Player >>> %s \n\n", prox->nome);
+
+                printf("\nlista inicio é: %s", lista->inicio->nome);
+                printf("\nlista fim é: %s", lista->fim->nome);
+                printf("\nLista Atual é: %s", lista->atual->nome);
+                printf("\nlista anterior é: %s\n", lista->anterior->nome);
+        }break;
+
+    case 5: /*Elimina o terceiro jogador contado a partir do jogador atual.*/
+        {
+            no *atual, *ant, *prox, *eliminado, *aux, *ant_remove, *atual_remove;
+
+                atual = lista->atual;
+                ant = lista->anterior;
+                prox = lista->atual->prox;
+
+                printf("\n\nDescrição da Carta: ''Elimina o terceiro jogador contado a partir do jogador atual.''\n");
+                printf("\n\nPlayer atual: %s \n", atual->nome);
+
+                eliminado = atual;
+
+                printf("\n\nPlayer ELIMINADO:  %s\n\n", eliminado->nome);
+                printf("\n");
+                printf("\t\tAgora é a vez do Player >>>> %s\n", prox->nome);
+
+                   if(eliminado == lista->inicio)
+                   {
+                       lista->inicio = lista->inicio->prox;
+                       free(eliminado);
+
+
+                   }else if(eliminado == lista->fim)
+                   {
+                       lista->fim = lista->atual->prox;
+                       free(eliminado);
+                   }else
+                   {
+                       prox->prox = atual->prox;
+                       free(eliminado);
+                   }
+
+                   lista->anterior = atual;
+                   lista->atual = atual->prox;
+                   lista->fim->prox = lista->inicio;
+
+                printf("\nlista Inicio é: %s", lista->inicio->nome);
+                printf("\nlista Fim é: %s", lista->fim->nome);
+                printf("\nLista Atual é: %s", lista->atual->nome);
+                printf("\nlista Anterior é: %s\n", lista->anterior->nome);
+
+    }break;
+
+   case 7:  /*Elimina o jogador da rodada anterior (o jogador que tirou a carta antes).*/
+        {
+            no *atual, *ant, *prox, *removido, *aux, *ant_remove, *atual_remove;
+
+                atual = lista->atual;
+                ant = lista->anterior;
+                prox = lista->atual->prox;
+
+                ant_remove = ant;
+                atual_remove = atual;
+
+                printf("\nDescrição da Carta: ''Elimina o jogador da rodada anterior (o jogador que tirou a carta antes)''\n");
+                printf("\nJogador atual: %s \n\n", atual->nome);
+                printf("\nJogador anterior: %s \n\n", ant->nome);
+
+
+                if(atual == lista->inicio)
+                {
+                    printf("\n\nCarta sem valor nesta rodada! \n\nÉ a vez do Jogador  >>> %s\n\n", prox);
+                    lista->anterior = atual;
+                    lista->atual = atual->prox;
+                    break;
+                }
+
+                do
+                {
+                        ant_remove = ant_remove->prox;
+
+                    }while(ant_remove != ant );
+
+                        removido = ant_remove;
+
+                        if(removido == lista->inicio)
+                        {
+                            lista->inicio = lista->inicio->prox;
+                            lista->anterior = atual;
+                            lista->atual = atual->prox;
+
+                        }
+                        else if(removido == lista->fim)
+                        {
+                            lista->fim = lista->fim->prox;
+                            lista->anterior = atual;
+                            lista->atual = atual->prox;
+                        }
+                        else
+                        {
+                            ant_remove->prox = ant->prox;
+                        }
+
+
+                printf("\nlista inicio é: %s", lista->inicio->nome);
+                printf("\nlista fim é: %s", lista->fim->nome);
+                printf("\nLista Atual é: %s", lista->atual->nome);
+                printf("\nlista anterior é: %s\n", lista->anterior->nome);
+        }break;
+    }
+}
+
+
+int main()
+{
+
+    char nome_remove[15];
+    int x, i, qtd_jog;
+    lista_jog list;
+
+    inicia_lista(&list);
+
+    setlocale(LC_ALL, "Portuguese");
+
+    no *ini, *fim, *ant, *primeiro;
+
+
+    ini=(no *)malloc(sizeof(no));
+
+    fim=ini;
+
+    printf("\t\t\t Jogo De Cartas");
+    printf("\n\t\t\t--- Primo's ---");
+    printf("\nQuantidade de Player's: ");
+    scanf("%d", &qtd_jog);
+
+        for(i = 0; i<qtd_jog; i++)
+        {
+            inserir_jogador(&list, i);
+        }
+
+        primeiro = (no *)malloc(sizeof(no));
+        primeiro = list.inicio;
+
+        list.atual = list.inicio;
+        list.anterior = NULL;
+
+    int opcao;
+    printf("\n\n");
+                printf("\t\t\--------------- Jogo Iniciado ---------------\n\n");
+            printf(" \n\t\t O primeiro a Jogar é o(a) player >>> %s <<<\n\n", list.atual);
+
+    do
+    {
+        if(list.inicio == list.fim)
+    {
+        printf("\n\n********* Fim do Jogo !!! *********");
+        printf("\nO vencedor foi o Player >>>>>>>>>>> %s <<<<<<<<<<<\n\n", list.inicio->nome);
+    }
+        printf("\t\t\t------------------------\n");
+        printf("\t\t\t----- MENU DO JOGO -----\n");
+        printf("\t\t\t------------------------\n");
+        printf(" \t\t\t6 - Jogar\n");
+        printf(" \t\t\t2 - Exibir jogadores\n");
+        printf(" \t\t\t3 - Remover jogadores\n");
+        printf(" \t\t\t0 - Sair do Jogo\n");
+        printf(" \t\t\tOpção: ");
+        scanf("%d", &opcao);
+
+        switch (opcao)
+        {
+            case 2:
+                printf("\n\n");
+                printf("Players: ");
+                imprimir_jogadores(&list);
+                printf("\n\n");
+            break;
+
+            case 3:
+                remover_jogador(&list);
+            break;
+
+            case 0:
+
+            break;
+
+            case 6:
+                {
+                jogar(&list);
+
+                }break;
+
+            default: printf("\t\tOpção invalida\n");
+        }
+
+    }while (opcao != 0);
+
+
+return 0;
+}
